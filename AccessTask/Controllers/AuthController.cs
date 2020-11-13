@@ -74,8 +74,7 @@ namespace AccessBankTask.Controllers
             var response = new LogActivity
             {
                 UserId = user.Id,
-                DeviceIp = currentIp,
-                LoginTime = DateTime.Now
+                DeviceIp = currentIp
             };
 
             await _logActivityRepository.AddLogActivity(response);
@@ -91,63 +90,29 @@ namespace AccessBankTask.Controllers
         {
             try
             {
+                // get device ip
                 var currentIp = Utility.GetLocalIPAddress();
-                var isSignedIn = _signInManager.IsSignedIn(User);
+                //var isSignedIn = _signInManager.IsSignedIn(User);
 
                 var user = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
-                var userId = user.Id;
+                if (user == null) return BadRequest("User does not exist"); 
 
-                //var ipAddress = await _logActivityRepository.GetIpAddress(userId, currentIp);
+                var activityResponse = await _logActivityRepository.GetLogActivity(user.Id);
+                if (activityResponse == null) return BadRequest("No registered user");
 
-                var activityResponse = await _logActivityRepository.GetLogActivity(userId);
-
-                if (isSignedIn && activityResponse.DeviceIp == currentIp && activityResponse.IsActive == true) return BadRequest("Already Signed In");
+                if (activityResponse.DeviceIp == currentIp && activityResponse.IsActive) return BadRequest("Already Signed In");
 
                 // if the user has previously logged in on current device but logged out
-                if (activityResponse.DeviceIp == currentIp && activityResponse.IsActive == false)
+                if (activityResponse.DeviceIp == currentIp && !activityResponse.IsActive)
                 {
-
                     activityResponse.LoginTime = DateTime.Now;
                     activityResponse.IsActive = true;
 
                     await _logActivityRepository.UpdateLogActivity(activityResponse);
                 }
-                else if (activityResponse == null)
-                {
-                    //this means the person is not on the log activity table and wants to login for the first time 
-                    var response = new LogActivity
-                    {
-                        UserId = userId,
-                        DeviceIp = currentIp,
-                        LoginTime = DateTime.Now
-                    };
-
-                    await _logActivityRepository.AddLogActivity(response);
-                }
                 else
                 {
-                    // var IpAddressBool = await _logActivityRepository.GetIpAddress(activityResponse);
-                    if (activityResponse.DeviceIp != currentIp)
-                    {
-                        return BadRequest("You are already logged in on another device. Do you want to logout?");
-                        /*var response = new LogActivity
-                        {
-                            Id = activityResponse.Id,
-                            IsActive = false,
-                            LogoutTime = DateTime.Now
-                        };
-
-                        await _logActivityRepository.UpdateLogActivity(response);
-
-                        var newResponse = new LogActivity
-                        {
-                            UserId = userId,
-                            DeviceIp = currentIp,
-                            LoginTime = DateTime.Now
-                        };
-
-                        await _logActivityRepository.AddLogActivity(newResponse);*/
-                    }
+                    return BadRequest("You are already logged in on another device. Do you want to logout?");
                 }
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
                 if (result.Succeeded)
@@ -166,54 +131,6 @@ namespace AccessBankTask.Controllers
 
         }
 
-        //login a user with a new device
-        //[HttpPost("loginnewdevice")]
-        //public async Task<IActionResult> LoginWithNewDevice([FromBody] LoginDto model)
-        //{
-        //    try
-        //    {
-        //        var currentIp = Utility.GetLocalIPAddress();
-        //        var user = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
-        //        var userId = user.Id;
-        //        var activityResponse = await _logActivityRepository.GetLogActivity(userId);
-        //        //set the isActive of the user in the log activity table to false
-        //        //then login and the device ip newly
-
-        //        if (activityResponse.DeviceIp != currentIp)
-        //        {
-        //            var response = new LogActivity
-        //            {
-        //                Id = activityResponse.Id,
-        //                IsActive = false,
-        //                LogoutTime = DateTime.Now
-        //            };
-
-        //            await _logActivityRepository.UpdateLogActivity(response);
-
-        //            var newResponse = new LogActivity
-        //            {
-        //                UserId = userId,
-        //                DeviceIp = currentIp,
-        //                LoginTime = DateTime.Now
-        //            };
-
-        //            await _logActivityRepository.AddLogActivity(newResponse);
-        //        }
-        //        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
-        //        if (result.Succeeded)
-        //        {
-        //            var getToken = JwtTokenConfig.GetToken(user, _config);
-        //            return Ok(new { message = "Logged in succesfully with new device", token = getToken });
-        //        }
-        //        return Unauthorized("Incorrect username or Password");
-        //    }
-        //    catch (Exception e)
-        //    {
-
-        //        _logger.LogError(e.Message);
-        //        return BadRequest("Error occured");
-        //    }
-        //}
         [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
@@ -227,7 +144,7 @@ namespace AccessBankTask.Controllers
 
             await _logActivityRepository.UpdateLogActivity(activityResponse);
             await _signInManager.SignOutAsync();
-            return Ok("Logged out successfully");
+            return Ok(new { message = "Logged out succesfully"});
         }
 
     }

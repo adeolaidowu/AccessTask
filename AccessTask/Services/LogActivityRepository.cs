@@ -51,13 +51,5 @@ namespace AccessBankTask.Services
         {
             return await _ctx.LogActivities.ToListAsync();
         }
-
-
-        //public async Task<bool> GetIpAddress(string id, string deviceIp)
-        //{
-        //    var result = await GetLogActivity(id);
-        //    if (result.DeviceIp == null) return true;
-        //    return false;
-        //}
     }
 }

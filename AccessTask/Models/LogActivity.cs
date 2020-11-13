@@ -10,7 +10,7 @@ namespace AccessBankTask.Models
     {
         [Key]
         public int Id { get; set; }
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = false;
 
         public string DeviceIp { get; set; }
 
