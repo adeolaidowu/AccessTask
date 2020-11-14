@@ -28,9 +28,6 @@ namespace AccessTask.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsSignedIn")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime>("LoginTime")
                         .HasColumnType("TEXT");
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DeviceId;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,17 +13,27 @@ namespace AccessBankTask.Helpers
     public class Utility
     {
         //gets ipaddress
+        [Obsolete]
         public static string GetLocalIPAddress()
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            throw new Exception("No network adapters with an IPv4 address in the system!");
+            //return new DeviceIdBuilder()
+            //.AddMachineName()
+            //.AddMacAddress()
+            //.AddProcessorId()
+            //.AddMotherboardSerialNumber()
+            //.ToString();
+            var hostName = Dns.GetHostName();
+            return Dns.GetHostByName(hostName).AddressList[0].ToString();
+
+            //var host = Dns.GetHostEntry(Dns.GetHostName());
+            //foreach (var ip in host.AddressList)
+            //{
+            //    if (ip.AddressFamily == AddressFamily.InterNetwork)
+            //    {
+            //        return ip.ToString();
+            //    }
+            //}
+            //throw new Exception("No network adapters with an IPv4 address in the system!");
         }
 
 

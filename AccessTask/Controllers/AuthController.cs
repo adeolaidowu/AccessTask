@@ -45,6 +45,7 @@ namespace AccessBankTask.Controllers
         //register user
         [AllowAnonymous]
         [HttpPost("Register")]
+        [Obsolete]
         public async Task<IActionResult> Register([FromBody] AddUserDto model)
         {
             var userToRegister = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
@@ -71,6 +72,7 @@ namespace AccessBankTask.Controllers
             }
 
             var currentIp = Utility.GetLocalIPAddress();
+            Console.WriteLine(currentIp);
             var response = new LogActivity
             {
                 UserId = user.Id,
@@ -86,12 +88,14 @@ namespace AccessBankTask.Controllers
         //login a user
         [AllowAnonymous]
         [HttpPost("login")]
+        [Obsolete]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
             try
             {
                 // get device ip
                 var currentIp = Utility.GetLocalIPAddress();
+                Console.WriteLine(currentIp);
                 //var isSignedIn = _signInManager.IsSignedIn(User);
 
                 var user = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
