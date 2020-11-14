@@ -94,6 +94,43 @@ namespace AccessBankTask.Controllers
             try
             {
                 // get device ip
+                var currentIp = Utility.getMac();
+                Console.WriteLine(currentIp);
+                //var isSignedIn = _signInManager.IsSignedIn(User);
+
+                var user = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
+                if (user == null) return BadRequest("User does not exist");
+
+                var activityResponse = await _logActivityRepository.GetLogActivity(user.Id);
+                if (activityResponse == null) return BadRequest("No registered user");
+
+                if (activityResponse.DeviceIp == currentIp && activityResponse.IsActive) return BadRequest("Already Signed In");
+
+                // if the user has previously logged in on current device but logged out
+                if (activityResponse.DeviceIp == currentIp && !activityResponse.IsActive)
+                {
+                    activityResponse.LoginTime = DateTime.Now;
+                    activityResponse.IsActive = true;
+
+                    await _logActivityRepository.UpdateLogActivity(activityResponse);
+                }
+                else
+                {
+                    return BadRequest("You are already logged in on another device. Do you want to logout?");
+                }
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+                if (result.Succeeded)
+                {
+                    var getToken = JwtTokenConfig.GetToken(user, _config);
+                    return Ok(new { message = "Logged in succesfully", token = getToken });
+                }
+                return Unauthorized("Incorrect username or Password");
+
+
+
+
+
+                /*// get device ip
                 var currentIp = Utility.GetLocalIPAddress();
                 Console.WriteLine(currentIp);
                 //var isSignedIn = _signInManager.IsSignedIn(User);
@@ -124,7 +161,7 @@ namespace AccessBankTask.Controllers
                     var getToken = JwtTokenConfig.GetToken(user, _config);
                     return Ok(new { message = "Logged in succesfully", token = getToken });
                 }
-                return Unauthorized("Incorrect username or Password");
+                return Unauthorized("Incorrect username or Password");*/
                 
             }
             catch (Exception e)

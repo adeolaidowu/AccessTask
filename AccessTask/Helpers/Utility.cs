@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -37,7 +38,7 @@ namespace AccessBankTask.Helpers
         }
 
 
-        // get user if from token
+        // get user id from token
         public static string GetUserIdFromToken(HttpContext context)
         {
             var token = context.Request.Headers["Authorization"].ToString().Split(" ")[1];
@@ -52,6 +53,21 @@ namespace AccessBankTask.Helpers
 
 
             return userId;
+        }
+        // get unique ID
+        public static string getMac()
+        {
+            NetworkInterface[] nif = NetworkInterface.GetAllNetworkInterfaces();
+            String MACAddress = string.Empty;
+            foreach (NetworkInterface adapter in nif)
+            {
+                if (MACAddress == String.Empty)
+                {
+                    IPInterfaceProperties ipproperties = adapter.GetIPProperties();
+                    MACAddress = adapter.GetPhysicalAddress().ToString();
+                }
+            }
+            return MACAddress;
         }
     }
 }
